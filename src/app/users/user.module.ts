@@ -14,6 +14,6 @@ export default class UserModule {
     const service = new UserService(repository, FileModule.build().repository);
     const controller = new UserController(service);
 
-    return { controller };
+    return { controller, service, repository };
   }
 }
