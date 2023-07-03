@@ -14,4 +14,10 @@ userRouter.post(
   userController.create.bind(userController)
 );
 
+userRouter.patch(
+  "/:id",
+  upload.single("image"),
+  userController.update.bind(userController)
+);
+
 export default userRouter;
