@@ -3,6 +3,7 @@ import { Router } from "express";
 const userRouter = Router();
 
 import upload from "../configs/storage-config";
+import AuthMiddleware from "../common/middlewares/auth.middleware";
 
 import UserModule from "../app/users/user.module";
 
@@ -13,6 +14,8 @@ userRouter.post(
   upload.single("image"),
   userController.create.bind(userController)
 );
+
+userRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
 userRouter.patch(
   "/:id",
