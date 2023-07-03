@@ -8,4 +8,8 @@ export default class FileRepository {
   async create(file: CreateFileDto) {
     return await this.model.create(file);
   }
+
+  async update(id: string, file: CreateFileDto) {
+    return await this.model.findByIdAndUpdate(id, file, { new: true });
+  }
 }
