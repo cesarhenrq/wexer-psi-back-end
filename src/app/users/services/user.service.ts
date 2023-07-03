@@ -4,6 +4,7 @@ import FileRepository from "../../files/repositories/file.repository";
 import { hash } from "bcryptjs";
 
 import { CreateUserServiceDto } from "../dtos/create-user-service.dto";
+import { UpdateUserServiceDto } from "../dtos/update-user-service.dto";
 
 export default class UserService {
   constructor(
@@ -44,6 +45,34 @@ export default class UserService {
       return {
         status: err.message ? 400 : 500,
         message: err.message || "Internal server error",
+        data: null,
+      };
+    }
+  }
+
+  async update(id: string, payload: UpdateUserServiceDto) {
+    try {
+      const { image, ...userToUpdate } = payload;
+
+      if (image) {
+        await this.fileRepository.update(image._id, image);
+      }
+
+      if (payload.password) {
+        userToUpdate.password = await hash(payload.password, 10);
+      }
+
+      const user = await this.userRepository.update(id, userToUpdate);
+
+      return {
+        status: 200,
+        message: "User updated successfully",
+        data: user,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
         data: null,
       };
     }
