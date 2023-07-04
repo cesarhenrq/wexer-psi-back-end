@@ -23,4 +23,6 @@ userRouter.patch(
   userController.update.bind(userController)
 );
 
+userRouter.delete("/:id", userController.delete.bind(userController));
+
 export default userRouter;
