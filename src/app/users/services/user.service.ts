@@ -77,4 +77,32 @@ export default class UserService {
       };
     }
   }
+
+  async delete(id: string) {
+    try {
+      const res = await this.userRepository.delete(id);
+
+      if (res) await this.fileRepository.delete(res.image as unknown as string);
+
+      if (!res) {
+        return {
+          status: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "User deleted successfully",
+        data: res,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
