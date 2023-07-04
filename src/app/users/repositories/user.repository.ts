@@ -25,4 +25,14 @@ export default class UserRepository {
   async findById(id: string) {
     return this.model.findById(id).populate("image").populate("patients");
   }
+
+  async associatePatient(id: string, patientId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      {
+        $push: { patients: patientId },
+      },
+      { new: true }
+    );
+  }
 }
