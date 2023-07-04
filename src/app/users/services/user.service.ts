@@ -56,10 +56,19 @@ export default class UserService {
 
   async update(id: string, payload: UpdateUserServiceDto) {
     try {
-      const { image, ...userToUpdate } = payload;
+      let { image, ...userToUpdate } = payload;
 
       if (image) {
-        await this.fileRepository.update(image._id, image);
+        if (!image._id) {
+          const res = await this.fileRepository.create({
+            filename: image.filename,
+            mimetype: image.mimetype,
+          });
+
+          userToUpdate = { ...userToUpdate, image: res.id } as any;
+        } else {
+          await this.fileRepository.update(image._id, image);
+        }
       }
 
       if (payload.password) {
