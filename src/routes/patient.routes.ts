@@ -12,4 +12,6 @@ patientRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
 patientRouter.post("/", patientController.create.bind(patientController));
 
+patientRouter.get("/:id", patientController.findById.bind(patientController));
+
 export default patientRouter;
