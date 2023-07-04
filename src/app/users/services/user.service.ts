@@ -6,6 +6,8 @@ import { hash } from "bcryptjs";
 import { CreateUserServiceDto } from "../dtos/create-user-service.dto";
 import { UpdateUserServiceDto } from "../dtos/update-user-service.dto";
 
+import paginate from "../../../utils/paginate";
+
 export default class UserService {
   constructor(
     private userRepository: UserRepository,
@@ -109,6 +111,34 @@ export default class UserService {
         status: 200,
         message: "User deleted successfully",
         data: res,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
+
+  async findAllPatients(id: string, page: any, limit: any) {
+    try {
+      const user = await this.userRepository.findById(id);
+
+      if (!user) {
+        return {
+          status: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
+      const patients = paginate(user.patients, page, limit);
+
+      return {
+        status: 200,
+        message: "Patients retrieved successfully",
+        data: patients,
       };
     } catch (err) {
       return {
