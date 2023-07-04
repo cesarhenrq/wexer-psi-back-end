@@ -17,4 +17,8 @@ export default class UserRepository {
   async update(id: string, user: UpdateUserDto) {
     return this.model.findByIdAndUpdate(id, user, { new: true });
   }
+
+  async delete(id: string) {
+    return this.model.findByIdAndDelete(id);
+  }
 }
