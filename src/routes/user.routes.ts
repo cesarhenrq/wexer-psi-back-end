@@ -25,4 +25,9 @@ userRouter.patch(
 
 userRouter.delete("/:id", userController.delete.bind(userController));
 
+userRouter.get(
+  "/:id/patients",
+  userController.findAllPatients.bind(userController)
+);
+
 export default userRouter;
