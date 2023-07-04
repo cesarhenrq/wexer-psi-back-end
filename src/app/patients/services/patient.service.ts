@@ -41,4 +41,30 @@ export default class PatientService {
       };
     }
   }
+
+  async findById(id: string) {
+    try {
+      const patient = await this.patientRepository.findById(id);
+
+      if (!patient) {
+        return {
+          status: 404,
+          message: "Patient not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Patient found",
+        data: patient,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
