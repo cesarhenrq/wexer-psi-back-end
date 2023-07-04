@@ -12,4 +12,8 @@ export default class FileRepository {
   async update(id: string, file: CreateFileDto) {
     return await this.model.findByIdAndUpdate(id, file, { new: true });
   }
+
+  async delete(id: string) {
+    return await this.model.findByIdAndDelete(id);
+  }
 }
