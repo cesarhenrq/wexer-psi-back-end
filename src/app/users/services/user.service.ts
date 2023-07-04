@@ -24,11 +24,15 @@ export default class UserService {
         };
       }
 
-      const image = await this.fileRepository.create(payload.image);
+      let imageId = null;
+      if (payload.image) {
+        const image = await this.fileRepository.create(payload.image);
+        imageId = image.id;
+      }
 
       const userToCreate = {
         ...payload,
-        image: image.id,
+        image: imageId,
         password: await hash(payload.password, 10),
       };
 
