@@ -23,4 +23,15 @@ export default class PatientController {
       data,
     });
   }
+
+  async findById(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const { status, message, data } = await this.service.findById(id);
+
+    return res.status(status).json({
+      message,
+      data,
+    });
+  }
 }
