@@ -21,4 +21,8 @@ export default class UserRepository {
   async delete(id: string) {
     return this.model.findByIdAndDelete(id);
   }
+
+  async findById(id: string) {
+    return this.model.findById(id).populate("image").populate("patients");
+  }
 }
