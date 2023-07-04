@@ -11,15 +11,6 @@ export default class UserController {
   async create(req: Request, res: Response) {
     const { body, file } = req;
 
-    if (!file) {
-      return res.status(400).json({
-        message: "Image is required",
-        data: null,
-      });
-    }
-
-    const { filename, mimetype } = file;
-
     try {
       await userSchema.validate(body);
     } catch (err: any) {
@@ -29,7 +20,12 @@ export default class UserController {
       });
     }
 
-    const payload = { ...body, image: { filename, mimetype } };
+    let payload = { ...body };
+
+    if (file) {
+      const { filename, mimetype } = file;
+      payload = { ...payload, image: { filename, mimetype } };
+    }
 
     const { status, message, data } = await this.service.create(payload);
 
