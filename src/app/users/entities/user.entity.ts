@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
     image: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: "File",
-      required: true,
     },
   },
   { timestamps: true }
