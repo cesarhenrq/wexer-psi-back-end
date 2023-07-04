@@ -8,4 +8,8 @@ export default class PatientRepository {
   async create(patient: CreatePatientDto) {
     return await this.model.create(patient);
   }
+
+  async findById(id: string) {
+    return await this.model.findById(id);
+  }
 }
