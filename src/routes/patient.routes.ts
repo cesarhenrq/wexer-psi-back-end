@@ -16,4 +16,9 @@ patientRouter.get("/:id", patientController.findById.bind(patientController));
 
 patientRouter.patch("/:id", patientController.update.bind(patientController));
 
+patientRouter.get(
+  "/:id/timelines",
+  patientController.findAllTimelines.bind(patientController)
+);
+
 export default patientRouter;

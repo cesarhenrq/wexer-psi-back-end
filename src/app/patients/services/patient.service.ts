@@ -4,6 +4,8 @@ import PatientRepository from "../repositories/patient.repository";
 import { CreatePatientDto } from "../dtos/create-patient.dto";
 import { UpdatePatientDto } from "../dtos/update-patient.dto";
 
+import paginate from "../../../utils/paginate";
+
 export default class PatientService {
   constructor(
     private patientRepository: PatientRepository,
@@ -87,6 +89,36 @@ export default class PatientService {
         status: 200,
         message: "Patient updated",
         data: updatedPatient,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
+
+  async findAllTimelines(id: string, page: any, limit: any) {
+    try {
+      const patient = await this.patientRepository.findById(id);
+
+      if (!patient) {
+        return {
+          status: 404,
+          message: "Patient not found",
+          data: null,
+        };
+      }
+
+      await patient.populate("timelines");
+
+      const timelines = paginate(patient.timelines, page, limit);
+
+      return {
+        status: 200,
+        message: "Patient timelines found",
+        data: timelines,
       };
     } catch (err) {
       return {

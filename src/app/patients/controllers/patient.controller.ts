@@ -53,4 +53,21 @@ export default class PatientController {
       data,
     });
   }
+
+  async findAllTimelines(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const { page = 1, limit = 10 } = req.query;
+
+    const { status, message, data } = await this.service.findAllTimelines(
+      id,
+      page,
+      limit
+    );
+
+    return res.status(status).json({
+      message,
+      data,
+    });
+  }
 }
