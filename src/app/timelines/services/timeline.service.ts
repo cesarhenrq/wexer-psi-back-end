@@ -41,4 +41,30 @@ export default class TimelineService {
       };
     }
   }
+
+  async findById(id: string) {
+    try {
+      const timeline = await this.timelineRepository.findById(id);
+
+      if (!timeline) {
+        return {
+          status: 404,
+          message: "Timeline not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Timeline found",
+        data: timeline,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
