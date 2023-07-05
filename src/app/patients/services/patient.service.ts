@@ -2,6 +2,7 @@ import UserRepository from "../../users/repositories/user.repository";
 import PatientRepository from "../repositories/patient.repository";
 
 import { CreatePatientDto } from "../dtos/create-patient.dto";
+import { UpdatePatientDto } from "../dtos/update-patient.dto";
 
 export default class PatientService {
   constructor(
@@ -58,6 +59,34 @@ export default class PatientService {
         status: 200,
         message: "Patient found",
         data: patient,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
+
+  async update(id: string, payload: UpdatePatientDto) {
+    try {
+      const patient = await this.patientRepository.findById(id);
+
+      if (!patient) {
+        return {
+          status: 404,
+          message: "Patient not found",
+          data: null,
+        };
+      }
+
+      const updatedPatient = await this.patientRepository.update(id, payload);
+
+      return {
+        status: 200,
+        message: "Patient updated",
+        data: updatedPatient,
       };
     } catch (err) {
       return {
