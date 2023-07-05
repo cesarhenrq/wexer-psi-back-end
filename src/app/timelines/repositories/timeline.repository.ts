@@ -8,4 +8,8 @@ export default class TimelineRepository {
   async create(timeline: CreateTimelineDto) {
     return await this.model.create(timeline);
   }
+
+  async findById(id: string) {
+    return await this.model.findById(id);
+  }
 }
