@@ -14,4 +14,6 @@ patientRouter.post("/", patientController.create.bind(patientController));
 
 patientRouter.get("/:id", patientController.findById.bind(patientController));
 
+patientRouter.patch("/:id", patientController.update.bind(patientController));
+
 export default patientRouter;
