@@ -5,6 +5,7 @@ import reqInfoMiddleware from "../common/middlewares/req-info.middleware";
 import userRouter from "./user.routes";
 import authRouter from "./auth.routes";
 import patientRouter from "./patient.routes";
+import timelineRouter from "./timeline.route";
 
 const routes = Router();
 
@@ -15,5 +16,7 @@ routes.use("/users", userRouter);
 routes.use("/auth", authRouter);
 
 routes.use("/patients", patientRouter);
+
+routes.use("/timelines", timelineRouter);
 
 export default routes;
