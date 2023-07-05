@@ -12,4 +12,9 @@ timelineRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
 timelineRouter.post("/:id", timelineController.create.bind(timelineController));
 
+timelineRouter.get(
+  "/:id",
+  timelineController.findById.bind(timelineController)
+);
+
 export default timelineRouter;
