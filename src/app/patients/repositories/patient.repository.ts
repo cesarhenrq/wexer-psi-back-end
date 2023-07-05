@@ -17,4 +17,14 @@ export default class PatientRepository {
   async update(id: string, patient: UpdatePatientDto) {
     return this.model.findByIdAndUpdate(id, patient, { new: true });
   }
+
+  async associateTimeline(id: string, timelineId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      {
+        $push: { timelines: timelineId },
+      },
+      { new: true }
+    );
+  }
 }
