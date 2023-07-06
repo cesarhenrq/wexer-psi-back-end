@@ -17,4 +17,9 @@ timelineRouter.get(
   timelineController.findById.bind(timelineController)
 );
 
+timelineRouter.patch(
+  "/:id",
+  timelineController.update.bind(timelineController)
+);
+
 export default timelineRouter;
