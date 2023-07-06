@@ -1,7 +1,9 @@
-import createTimelineSchema from "../schemas/create-timeline.schema";
+import { Request, Response } from "express";
+
 import TimelineService from "../services/timeline.service";
 
-import { Request, Response } from "express";
+import createTimelineSchema from "../schemas/create-timeline.schema";
+import updateTimelineSchema from "../schemas/update-timeline.schema";
 
 export default class TimelineController {
   constructor(private service: TimelineService) {}
@@ -32,6 +34,25 @@ export default class TimelineController {
     const { id } = req.params;
 
     const { status, message, data } = await this.service.findById(id);
+
+    return res.status(status).json({
+      message,
+      data,
+    });
+  }
+
+  async update(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const { body } = req;
+
+    try {
+      await updateTimelineSchema.validate(body);
+    } catch (err: any) {
+      return res.status(400).json({ message: err.errors, data: null });
+    }
+
+    const { status, message, data } = await this.service.update(id, body);
 
     return res.status(status).json({
       message,

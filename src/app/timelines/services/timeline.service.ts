@@ -2,6 +2,7 @@ import TimelineRepository from "../repositories/timeline.repository";
 import PatientRepository from "../../patients/repositories/patient.repository";
 
 import { CreateTimelineDto } from "../dtos/create-timeline.dto";
+import { UpdateTimelineDto } from "../dtos/update-timeline.dto";
 
 export default class TimelineService {
   constructor(
@@ -65,6 +66,34 @@ export default class TimelineService {
         message: "Internal server error",
         data: null,
       };
+    }
+  }
+
+  async update(id: string, payload: UpdateTimelineDto) {
+    try {
+
+      const timeline = await this.timelineRepository.update(id, payload);
+
+      if (!timeline) {
+        return {
+          status: 404,
+          message: "Timeline not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Timeline updated",
+        data: timeline,
+      };
+
+    } catch(err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      }
     }
   }
 }
