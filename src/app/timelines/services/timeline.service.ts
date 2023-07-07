@@ -4,6 +4,8 @@ import PatientRepository from "../../patients/repositories/patient.repository";
 import { CreateTimelineDto } from "../dtos/create-timeline.dto";
 import { UpdateTimelineDto } from "../dtos/update-timeline.dto";
 
+import paginate from "../../../utils/paginate";
+
 export default class TimelineService {
   constructor(
     private timelineRepository: TimelineRepository,
@@ -71,7 +73,6 @@ export default class TimelineService {
 
   async update(id: string, payload: UpdateTimelineDto) {
     try {
-
       const timeline = await this.timelineRepository.update(id, payload);
 
       if (!timeline) {
@@ -87,13 +88,42 @@ export default class TimelineService {
         message: "Timeline updated",
         data: timeline,
       };
-
-    } catch(err) {
+    } catch (err) {
       return {
         status: 500,
         message: "Internal server error",
         data: null,
+      };
+    }
+  }
+
+  async findOccurrences(id: string, page: any, limit: any) {
+    try {
+      const timeline = await this.timelineRepository.findById(id);
+
+      if (!timeline) {
+        return {
+          status: 404,
+          message: "Timeline not found",
+          data: null,
+        };
       }
+
+      await timeline.populate("occurrences");
+
+      const occurrences = paginate(timeline.occurrences, page, limit);
+
+      return {
+        status: 200,
+        message: "Occurrences found",
+        data: occurrences,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
     }
   }
 }
