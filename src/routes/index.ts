@@ -6,6 +6,7 @@ import userRouter from "./user.routes";
 import authRouter from "./auth.routes";
 import patientRouter from "./patient.routes";
 import timelineRouter from "./timeline.route";
+import occurrenceRouter from "./occurrence.routes";
 
 const routes = Router();
 
@@ -18,5 +19,7 @@ routes.use("/auth", authRouter);
 routes.use("/patients", patientRouter);
 
 routes.use("/timelines", timelineRouter);
+
+routes.use("/occurrences", occurrenceRouter);
 
 export default routes;

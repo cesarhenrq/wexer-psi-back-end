@@ -17,4 +17,14 @@ export default class TimelineRepository {
   async update(id: string, timeline: UpdateTimelineDto) {
     return this.model.findByIdAndUpdate(id, timeline, { new: true });
   }
+
+  async associateOccurrence(id: string, occurrenceId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      {
+        $push: { occurrences: occurrenceId },
+      },
+      { new: true }
+    );
+  }
 }
