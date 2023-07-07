@@ -22,4 +22,9 @@ timelineRouter.patch(
   timelineController.update.bind(timelineController)
 );
 
+timelineRouter.get(
+  "/:id/occurrences",
+  timelineController.findOccurrences.bind(timelineController)
+);
+
 export default timelineRouter;
