@@ -9,6 +9,10 @@ export default class FileRepository {
     return await this.model.create(file);
   }
 
+  async createMany(files: CreateFileDto[]) {
+    return await this.model.insertMany(files);
+  }
+
   async update(id: string, file: CreateFileDto) {
     return await this.model.findByIdAndUpdate(id, file, { new: true });
   }
