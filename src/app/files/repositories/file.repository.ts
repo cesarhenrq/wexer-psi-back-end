@@ -20,4 +20,8 @@ export default class FileRepository {
   async delete(id: string) {
     return await this.model.findByIdAndDelete(id);
   }
+
+  async deleteMany(ids: string[]) {
+    return this.model.deleteMany({ _id: { $in: ids } });
+  }
 }
