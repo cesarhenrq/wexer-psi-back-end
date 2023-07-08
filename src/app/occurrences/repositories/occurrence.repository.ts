@@ -1,6 +1,7 @@
 import Occurrence from "../entities/occurrence.entity";
 
 import { CreateOccurrenceDto } from "../dtos/create-occurrence.dto";
+import { UpdateOccurrenceDto } from "../dtos/update-occurrences.dto";
 
 export default class OccurrenceRepository {
   constructor(private model: typeof Occurrence) {}
@@ -11,5 +12,9 @@ export default class OccurrenceRepository {
 
   async findById(id: string) {
     return this.model.findById(id).populate("files");
+  }
+
+  async update(id: string, occurrence: UpdateOccurrenceDto) {
+    return this.model.findByIdAndUpdate(id, occurrence, { new: true });
   }
 }

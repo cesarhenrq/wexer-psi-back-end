@@ -4,6 +4,9 @@ import FileRepository from "../../files/repositories/file.repository";
 
 import { CreateOccurrenceServiceDto } from "../dtos/create-occurrence-service.dto";
 import { CreateOccurrenceDto } from "../dtos/create-occurrence.dto";
+import { UpdateOccurrenceServiceDto } from "../dtos/update-occurrence-service.dto";
+import { CreateFileDto } from "../../files/dtos/create-file.dto";
+import { UpdateOccurrenceDto } from "../dtos/update-occurrences.dto";
 
 export default class OccurrenceService {
   constructor(
@@ -68,6 +71,80 @@ export default class OccurrenceService {
         status: 200,
         message: "Occurrence found",
         data: occurrence,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
+
+  async update(id: string, payload: UpdateOccurrenceServiceDto) {
+    try {
+      const occurrence = await this.occurrenceRepository.findById(id);
+
+      if (!occurrence) {
+        return {
+          status: 404,
+          message: "Occurrence not found",
+          data: null,
+        };
+      }
+
+      if (payload.files && !occurrence.files.length) {
+        const files = await this.fileRepository.createMany(payload.files);
+        payload.files = files.map((file) => file.id);
+      } else if (payload.files) {
+        const filesToCreate = payload.files.filter((file) => {
+          return !occurrence.files.some((occurrenceFile) => {
+            return (
+              (occurrenceFile as unknown as CreateFileDto).filename ===
+              file.filename
+            );
+          });
+        }) as CreateFileDto[];
+
+        const filesToDelete = (
+          occurrence.files as unknown as CreateFileDto[]
+        ).filter((file) => {
+          return !payload.files?.some((payloadFile) => {
+            return (
+              (payloadFile as unknown as CreateFileDto).filename ===
+              file.filename
+            );
+          });
+        });
+
+        const idsToDelete = filesToDelete.map((file: any) => file.id);
+
+        const files = await this.fileRepository.createMany(filesToCreate);
+
+        await this.fileRepository.deleteMany(idsToDelete as string[]);
+
+        const filesToMaintain = occurrence.files.filter((id) => {
+          return !idsToDelete.includes(id);
+        });
+
+        (payload.files as any) = filesToMaintain.concat(
+          files.map((file) => file.id)
+        );
+      }
+
+      const updatedOccurrence = await this.occurrenceRepository.update(
+        id,
+        payload as UpdateOccurrenceDto
+      );
+
+      if (updatedOccurrence) {
+        await updatedOccurrence.populate("files");
+      }
+
+      return {
+        status: 200,
+        message: "Occurrence updated successfully",
+        data: updatedOccurrence,
       };
     } catch (err) {
       return {
