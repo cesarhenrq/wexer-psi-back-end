@@ -8,4 +8,8 @@ export default class OccurrenceRepository {
   async create(occurrence: CreateOccurrenceDto) {
     return this.model.create(occurrence);
   }
+
+  async findById(id: string) {
+    return this.model.findById(id).populate("files");
+  }
 }

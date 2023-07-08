@@ -17,4 +17,9 @@ occurrenceRouter.post(
   occurrenceController.create.bind(occurrenceController)
 );
 
+occurrenceRouter.get(
+  "/:id",
+  occurrenceController.findById.bind(occurrenceController)
+);
+
 export default occurrenceRouter;
