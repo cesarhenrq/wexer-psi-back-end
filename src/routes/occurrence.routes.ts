@@ -22,4 +22,10 @@ occurrenceRouter.get(
   occurrenceController.findById.bind(occurrenceController)
 );
 
+occurrenceRouter.patch(
+  "/:id",
+  upload.array("files"),
+  occurrenceController.update.bind(occurrenceController)
+);
+
 export default occurrenceRouter;
