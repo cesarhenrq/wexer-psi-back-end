@@ -51,4 +51,30 @@ export default class OccurrenceService {
       };
     }
   }
+
+  async findById(id: string) {
+    try {
+      const occurrence = await this.occurrenceRepository.findById(id);
+
+      if (!occurrence) {
+        return {
+          status: 404,
+          message: "Occurrence not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Occurrence found",
+        data: occurrence,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
