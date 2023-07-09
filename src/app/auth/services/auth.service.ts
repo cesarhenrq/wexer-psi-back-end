@@ -2,7 +2,7 @@ import UserRepository from "../../users/repositories/user.repository";
 
 import { LoginDTO } from "../dtos/login.dto";
 
-import { compareSync } from "bcryptjs";
+import { compare } from "bcryptjs";
 
 import JWT from "jsonwebtoken";
 
@@ -21,7 +21,7 @@ export default class AuthService {
         };
       }
 
-      const isPasswordValid = compareSync(payload.password, user.password);
+      const isPasswordValid = await compare(payload.password, user.password);
 
       if (!isPasswordValid) {
         return {
