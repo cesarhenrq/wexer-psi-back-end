@@ -46,11 +46,9 @@ export default class UserService {
         data: newUser,
       };
     } catch (err: any) {
-      console.log(err);
-
       return {
-        status: err.message ? 400 : 500,
-        message: err.message || "Internal server error",
+        status: 500,
+        message: "Internal server error",
         data: null,
       };
     }
@@ -58,10 +56,20 @@ export default class UserService {
 
   async update(id: string, payload: UpdateUserServiceDto) {
     try {
+      const user = await this.userRepository.findById(id);
+
+      if (!user) {
+        return {
+          status: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
       let { image, ...userToUpdate } = payload;
 
       if (image) {
-        if (!image._id) {
+        if (!user.image) {
           const res = await this.fileRepository.create({
             filename: image.filename,
             mimetype: image.mimetype,
@@ -69,7 +77,10 @@ export default class UserService {
 
           userToUpdate = { ...userToUpdate, image: res.id } as any;
         } else {
-          await this.fileRepository.update(image._id, image);
+          await this.fileRepository.update(
+            user.image._id as unknown as string,
+            image
+          );
         }
       }
 
@@ -77,12 +88,12 @@ export default class UserService {
         userToUpdate.password = await hash(payload.password, 10);
       }
 
-      const user = await this.userRepository.update(id, userToUpdate);
+      const userUpdated = await this.userRepository.update(id, userToUpdate);
 
       return {
         status: 200,
         message: "User updated successfully",
-        data: user,
+        data: userUpdated,
       };
     } catch (err) {
       return {
@@ -97,8 +108,6 @@ export default class UserService {
     try {
       const res = await this.userRepository.delete(id);
 
-      if (res) await this.fileRepository.delete(res.image as unknown as string);
-
       if (!res) {
         return {
           status: 404,
@@ -106,6 +115,8 @@ export default class UserService {
           data: null,
         };
       }
+
+      await this.fileRepository.delete(res.image as unknown as string);
 
       return {
         status: 200,
