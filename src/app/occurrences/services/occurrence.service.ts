@@ -29,7 +29,9 @@ export default class OccurrenceService {
 
       if (payload.files) {
         const files = await this.fileRepository.createMany(payload.files);
-        payload.files = files.map((file) => file.id);
+        (payload.files as any) = files.map(
+          (file) => file._id as unknown as string
+        );
       }
 
       const occurrence = await this.occurrenceRepository.create(
@@ -95,7 +97,8 @@ export default class OccurrenceService {
 
       if (payload.files && !occurrence.files.length) {
         const files = await this.fileRepository.createMany(payload.files);
-        payload.files = files.map((file) => file.id);
+
+        (payload.files as any) = files.map((file) => file._id);
       } else if (payload.files) {
         const filesToCreate = payload.files.filter((file) => {
           return !occurrence.files.some((occurrenceFile) => {
@@ -109,26 +112,29 @@ export default class OccurrenceService {
         const filesToDelete = (
           occurrence.files as unknown as CreateFileDto[]
         ).filter((file) => {
-          return !payload.files?.some((payloadFile) => {
-            return (
-              (payloadFile as unknown as CreateFileDto).filename ===
-              file.filename
-            );
-          });
+          return (
+            payload.files &&
+            !payload.files.some((payloadFile) => {
+              return (
+                (payloadFile as unknown as CreateFileDto).filename ===
+                file.filename
+              );
+            })
+          );
         });
 
-        const idsToDelete = filesToDelete.map((file: any) => file.id);
+        const idsToDelete = filesToDelete.map((file: any) => file._id);
 
         const files = await this.fileRepository.createMany(filesToCreate);
 
         await this.fileRepository.deleteMany(idsToDelete as string[]);
 
-        const filesToMaintain = occurrence.files.filter((id) => {
-          return !idsToDelete.includes(id);
+        const filesToMaintain = occurrence.files.filter((_id) => {
+          return !idsToDelete.includes(_id);
         });
 
         (payload.files as any) = filesToMaintain.concat(
-          files.map((file) => file.id)
+          files.map((file) => file._id)
         );
       }
 
