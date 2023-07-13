@@ -21,117 +21,110 @@ describe("Auth service", () => {
     findByEmail: jest.fn(),
   };
 
-  it("Should generate a token if the user exists and password is valid", async () => {
+  describe("Login", () => {
     const payload = {
       email: "test@gmail.com",
       password: "123456",
     } as LoginDTO;
 
-    mockedUserRepository.findByEmail.mockResolvedValue({ ...payload, id: 1 });
+    it("Should generate a token if the user exists and password is valid", async () => {
+      mockedUserRepository.findByEmail.mockResolvedValue({ ...payload, id: 1 });
 
-    bcryptSpy.mockResolvedValue(true as never);
+      bcryptSpy.mockResolvedValue(true as never);
 
-    jwtSpy.mockReturnValue({} as never);
+      jwtSpy.mockReturnValue({} as never);
 
-    const expected = {
-      status: 200,
-      data: { token: {}, user: { ...payload, id: 1 } },
-      message: "You're authenticated!",
-    };
+      const expected = {
+        status: 200,
+        data: { token: {}, user: { ...payload, id: 1 } },
+        message: "You're authenticated!",
+      };
 
-    const authService = new AuthService(mockedUserRepository as any);
+      const authService = new AuthService(mockedUserRepository as any);
 
-    const result = await authService.login(payload);
+      const result = await authService.login(payload);
 
-    expect(result).toEqual(expected);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
-      payload.email
-    );
-    expect(bcryptSpy).toHaveBeenCalledTimes(1);
-    expect(bcryptSpy).toHaveBeenCalledWith(payload.password, payload.password);
-    expect(jwtSpy).toHaveBeenCalledTimes(1);
-    expect(jwtSpy).toHaveBeenCalledWith({ id: 1 }, process.env.SECRET_KEY, {
-      expiresIn: "15m",
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
+        payload.email
+      );
+      expect(bcryptSpy).toHaveBeenCalledTimes(1);
+      expect(bcryptSpy).toHaveBeenCalledWith(
+        payload.password,
+        payload.password
+      );
+      expect(jwtSpy).toHaveBeenCalledTimes(1);
+      expect(jwtSpy).toHaveBeenCalledWith({ id: 1 }, process.env.SECRET_KEY, {
+        expiresIn: "15m",
+      });
     });
-  });
 
-  it("Should return an error if the user doesn't exist", async () => {
-    const payload = {
-      email: "test@gmail.com",
-      password: "123456",
-    } as LoginDTO;
+    it("Should return an error if the user doesn't exist", async () => {
+      mockedUserRepository.findByEmail.mockResolvedValue(null);
 
-    mockedUserRepository.findByEmail.mockResolvedValue(null);
+      const expected = {
+        status: 400,
+        message: "E-mail/password invalid",
+        data: null,
+      };
 
-    const expected = {
-      status: 400,
-      message: "E-mail/password invalid",
-      data: null,
-    };
+      const authService = new AuthService(mockedUserRepository as any);
 
-    const authService = new AuthService(mockedUserRepository as any);
+      const result = await authService.login(payload);
 
-    const result = await authService.login(payload);
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
+        payload.email
+      );
+    });
 
-    expect(result).toEqual(expected);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
-      payload.email
-    );
-  });
+    it("Should return an error if the password is invalid", async () => {
+      mockedUserRepository.findByEmail.mockResolvedValue({ ...payload, id: 1 });
 
-  it("Should return an error if the password is invalid", async () => {
-    const payload = {
-      email: "test@gmail.com",
-      password: "123456",
-    } as LoginDTO;
+      bcryptSpy.mockResolvedValue(false as never);
 
-    mockedUserRepository.findByEmail.mockResolvedValue({ ...payload, id: 1 });
+      const expected = {
+        status: 400,
+        message: "E-mail/password invalid",
+        data: null,
+      };
 
-    bcryptSpy.mockResolvedValue(false as never);
+      const authService = new AuthService(mockedUserRepository as any);
 
-    const expected = {
-      status: 400,
-      message: "E-mail/password invalid",
-      data: null,
-    };
+      const result = await authService.login(payload);
 
-    const authService = new AuthService(mockedUserRepository as any);
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
+        payload.email
+      );
+      expect(bcryptSpy).toHaveBeenCalledTimes(1);
+      expect(bcryptSpy).toHaveBeenCalledWith(
+        payload.password,
+        payload.password
+      );
+    });
 
-    const result = await authService.login(payload);
+    it("Should return an error if something goes wrong on repository", async () => {
+      mockedUserRepository.findByEmail.mockRejectedValue(new Error());
 
-    expect(result).toEqual(expected);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
-      payload.email
-    );
-    expect(bcryptSpy).toHaveBeenCalledTimes(1);
-    expect(bcryptSpy).toHaveBeenCalledWith(payload.password, payload.password);
-  });
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
 
-  it("Should return an error if something goes wrong on repository", async () => {
-    const payload = {
-      email: "test@gmail.com",
-      password: "123456",
-    } as LoginDTO;
+      const authService = new AuthService(mockedUserRepository as any);
 
-    mockedUserRepository.findByEmail.mockRejectedValue(new Error());
+      const result = await authService.login(payload);
 
-    const expected = {
-      status: 500,
-      message: "Internal server error",
-      data: null,
-    };
-
-    const authService = new AuthService(mockedUserRepository as any);
-
-    const result = await authService.login(payload);
-
-    expect(result).toEqual(expected);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
-    expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
-      payload.email
-    );
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.findByEmail).toHaveBeenCalledWith(
+        payload.email
+      );
+    });
   });
 });
