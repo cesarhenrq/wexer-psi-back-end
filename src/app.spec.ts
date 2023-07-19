@@ -15,8 +15,7 @@ describe("App", () => {
     await disconnect();
   });
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YTI0NjUxMzg2OGY0NjdjYzU3NTU1ZSIsImlhdCI6MTY4OTcyNDEwMSwiZXhwIjoxNjg5NzI1MDAxfQ.Mgjxxnx1okjNGjp7p3AB0Q3tfBCEzFKbxQ25XyXUVN8";
+  let token: string;
 
   describe("Auth routes", () => {
     describe("POST /auth", () => {
@@ -29,6 +28,8 @@ describe("App", () => {
         };
 
         const response = await request(app).post(route).type("json").send(user);
+
+        token = response.body.data.token;
 
         expect(response.status).toBe(200);
         expect(response.body.data).toHaveProperty("token");
