@@ -23,6 +23,8 @@ describe("App", () => {
 
   let idOccurrence: string;
 
+  let idOccurrenceWithFiles: string;
+
   describe("Auth routes", () => {
     describe("POST /auth", () => {
       const route = "/auth";
@@ -133,7 +135,7 @@ describe("App", () => {
   describe("User routes", () => {
     const route = "/users";
 
-    const id = "64a246513868f467cc57555e";
+    const id = "64b99eff6b37ba75f3ed04fb";
 
     let idToDelete: string;
 
@@ -452,7 +454,7 @@ describe("App", () => {
     describe("GET /users/:id/patients", () => {
       it("Should be able to list all patients from an user", async () => {
         const response = await request(app)
-          .get(`/users/64a246513868f467cc57555e/patients`)
+          .get(`/users/${id}/patients`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(200);
@@ -497,7 +499,7 @@ describe("App", () => {
     const route = "/patients";
 
     describe("POST /patients", () => {
-      const user = "64a246513868f467cc57555e";
+      const user = "64b99eff6b37ba75f3ed04fb";
 
       it("Should be able to create a new patient", async () => {
         const patient = {
@@ -1257,6 +1259,8 @@ describe("App", () => {
             )
           );
 
+        idOccurrenceWithFiles = response.body.data._id;
+
         expect(response.status).toBe(201);
         expect(response.body.data).toHaveProperty("_id");
         expect(response.body.data).toHaveProperty("name");
@@ -1487,7 +1491,7 @@ describe("App", () => {
 
       it("Should be able to update occurrence's files", async () => {
         const response = await request(app)
-          .patch(`${route}/${idOccurrence}`)
+          .patch(`${route}/${idOccurrenceWithFiles}`)
           .set("Authorization", `Bearer ${token}`)
           .attach(
             "files",
@@ -1578,6 +1582,78 @@ describe("App", () => {
           .set("Authorization", `Bearer ${token}1`)
           .type("json")
           .send(occurrence);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("DELETE /occurrences/:id", () => {
+      it("Should be able to delete an occurrence", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.message).toBe("Occurrence deleted successfully");
+      });
+
+      it("Should be able to delete an occurrence with its files", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idOccurrenceWithFiles}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.message).toBe("Occurrence deleted successfully");
+      });
+
+      it("Should not delete an occurrence if id is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not delete an occurrence if id is not found", async () => {
+        const response = await request(app)
+          .delete(`${route}/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Occurrence not found");
+      });
+
+      it("Should not delete an occurrence if token is not provided", async () => {
+        const response = await request(app).delete(`${route}/${idOccurrence}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not delete an occurrence if token is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}1`);
 
         expect(response.status).toBe(401);
         expect(response.body.data).toBeNull();
