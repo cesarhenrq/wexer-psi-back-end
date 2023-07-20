@@ -173,6 +173,12 @@ export default class OccurrenceService {
         };
       }
 
+      if (occurrence.files.length) {
+        const filesToDelete = occurrence.files.map((file) => file._id);
+
+        await this.fileRepository.deleteMany(filesToDelete as any[]);
+      }
+
       return {
         status: 200,
         message: "Occurrence deleted successfully",
