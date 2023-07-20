@@ -17,6 +17,7 @@ describe("OccurrenceController", () => {
     create: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
   };
 
   const sut = new OccurrenceController(mockedService);
@@ -530,6 +531,82 @@ describe("OccurrenceController", () => {
         occurrenceToUpdate
       );
       expect(mockedService.update).toBeCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should return 200 when delete a occurrence", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "any_id" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      const mockedDeleteResponse = {
+        status: 200,
+        message: "any_message",
+        data: "any_data",
+      };
+
+      mockedService.delete.mockResolvedValue(mockedDeleteResponse);
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(200);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "any_message",
+        data: "any_data",
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toBeCalledTimes(1);
+    });
+
+    it("Should return 404 if a occurrence is not found", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "any_id" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 404,
+        message: "Occurrence not found",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(404);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Occurrence not found",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toBeCalledTimes(1);
+    });
+
+    it("Should return 500 if something goes wrong", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "any_id" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(500);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Internal server error",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toBeCalledTimes(1);
     });
   });
 });
