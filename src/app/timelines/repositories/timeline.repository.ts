@@ -27,4 +27,12 @@ export default class TimelineRepository {
       { new: true }
     );
   }
+
+  async desassociateOccurrence(id: string, occurrenceId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      { $pull: { occurrences: occurrenceId } },
+      { new: true }
+    );
+  }
 }
