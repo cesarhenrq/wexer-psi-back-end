@@ -17,6 +17,10 @@ describe("App", () => {
 
   let token: string;
 
+  let idPatient: string;
+
+  let idTimeline: string;
+
   describe("Auth routes", () => {
     describe("POST /auth", () => {
       const route = "/auth";
@@ -488,8 +492,6 @@ describe("App", () => {
   });
 
   describe("Patient routes", () => {
-    let id: string;
-
     const route = "/patients";
 
     describe("POST /patients", () => {
@@ -511,7 +513,7 @@ describe("App", () => {
           .set("Authorization", `Bearer ${token}`)
           .send(patient);
 
-        id = response.body.data._id;
+        idPatient = response.body.data._id;
 
         expect(response.status).toBe(201);
         expect(response.body.data).toHaveProperty("_id");
@@ -678,7 +680,7 @@ describe("App", () => {
     describe("GET /patients/:id", () => {
       it("Should find a patient by id", async () => {
         const response = await request(app)
-          .get(`${route}/${id}`)
+          .get(`${route}/${idPatient}`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(200);
@@ -716,7 +718,7 @@ describe("App", () => {
       });
 
       it("Should not find a patient if token is not provided", async () => {
-        const response = await request(app).get(`${route}/${id}`);
+        const response = await request(app).get(`${route}/${idPatient}`);
 
         expect(response.status).toBe(401);
         expect(response.body.data).toBeNull();
@@ -725,7 +727,7 @@ describe("App", () => {
 
       it("Should not find a patient if token is not valid", async () => {
         const response = await request(app)
-          .get(`${route}/${id}`)
+          .get(`${route}/${idPatient}`)
           .set("Authorization", `Bearer ${token}1`);
 
         expect(response.status).toBe(401);
@@ -745,7 +747,7 @@ describe("App", () => {
         };
 
         const response = await request(app)
-          .patch(`${route}/${id}`)
+          .patch(`${route}/${idPatient}`)
           .type("json")
           .set("Authorization", `Bearer ${token}`)
           .send(patient);
@@ -815,7 +817,7 @@ describe("App", () => {
         };
 
         const response = await request(app)
-          .patch(`${route}/${id}`)
+          .patch(`${route}/${idPatient}`)
           .type("json")
           .send(patient);
 
@@ -834,7 +836,7 @@ describe("App", () => {
         };
 
         const response = await request(app)
-          .patch(`${route}/${id}`)
+          .patch(`${route}/${idPatient}`)
           .type("json")
           .set("Authorization", `Bearer ${token}1`)
           .send(patient);
@@ -848,7 +850,7 @@ describe("App", () => {
     describe("GET /patients/:id/timelines", () => {
       it("Should list all timelines of a patient", async () => {
         const response = await request(app)
-          .get(`${route}/${id}/timelines`)
+          .get(`${route}/${idPatient}/timelines`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(200);
@@ -878,7 +880,9 @@ describe("App", () => {
       });
 
       it("Should not list all timelines of a patient if token is not provided", async () => {
-        const response = await request(app).get(`${route}/${id}/timelines`);
+        const response = await request(app).get(
+          `${route}/${idPatient}/timelines`
+        );
 
         expect(response.status).toBe(401);
         expect(response.body.data).toBeNull();
@@ -887,7 +891,306 @@ describe("App", () => {
 
       it("Should not list all timelines of a patient if token is not valid", async () => {
         const response = await request(app)
-          .get(`${route}/${id}/timelines`)
+          .get(`${route}/${idPatient}/timelines`)
+          .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+  });
+
+  describe("Timeline routes", () => {
+    const route = "/timelines";
+
+    describe("POST /timelines/:patientId", () => {
+      it("Should create a timeline", async () => {
+        const timeline = {
+          name: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idPatient}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        idTimeline = response.body.data._id;
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("occurrences");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.data.name).toBe(timeline.name);
+        expect(response.body.message).toBe("Timeline created");
+      });
+
+      it("Should not create a timeline if name is not provided", async () => {
+        const timeline = {};
+
+        const response = await request(app)
+          .post(`${route}/${idPatient}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(400);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toEqual(["name is a required field"]);
+      });
+
+      it("Should not create a timeline if patientId is not valid", async () => {
+        const timeline = {
+          name: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/1`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not create a timeline if patientId is not found", async () => {
+        const timeline = {
+          name: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/64a246513868f467cc60555e`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Patient not found");
+      });
+
+      it("Should not create a timeline if token is not provided", async () => {
+        const timeline = {
+          name: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idPatient}`)
+          .type("json")
+          .send(timeline);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not create a timeline if token is not valid", async () => {
+        const timeline = {
+          name: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idPatient}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}1`)
+          .send(timeline);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("GET /timelines/:id", () => {
+      it("Should find a timeline by id", async () => {
+        const response = await request(app)
+          .get(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("occurrences");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.message).toBe("Timeline found");
+      });
+
+      it("Should not find a timeline by id if id is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not find a timeline by id if id is not found", async () => {
+        const response = await request(app)
+          .get(`${route}/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Timeline not found");
+      });
+
+      it("Should not find a timeline by id if token is not provided", async () => {
+        const response = await request(app).get(`${route}/${idTimeline}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not find a timeline by id if token is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("PATCH /timelines/:id", () => {
+      it("Should update a timeline by id", async () => {
+        const timeline = {
+          name: "test2",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idTimeline}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("occurrences");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.data.name).toBe(timeline.name);
+        expect(response.body.message).toBe("Timeline updated");
+      });
+
+      it("Should not update a timeline by id if id is not valid", async () => {
+        const timeline = {
+          name: "test2",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/1`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not update a timeline by id if id is not found", async () => {
+        const timeline = {
+          name: "test2",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/64a246513868f467cc60555e`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(timeline);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Timeline not found");
+      });
+
+      it("Should not update a timeline by id if token is not provided", async () => {
+        const timeline = {
+          name: "test2",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idTimeline}`)
+          .type("json")
+          .send(timeline);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not update a timeline by id if token is not valid", async () => {
+        const timeline = {
+          name: "test2",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idTimeline}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}1`)
+          .send(timeline);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("GET /timelines/:id/occurrences", () => {
+      it("Should find all occurrences of a timeline by id", async () => {
+        const response = await request(app)
+          .get(`${route}/${idTimeline}/occurrences`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBeInstanceOf(Array);
+        expect(response.body.data.length).toBeLessThanOrEqual(10);
+        expect(response.body.message).toBe("Occurrences found");
+      });
+
+      it("Should not find all occurrences of a timeline by id if id is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/1/occurrences`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not find all occurrences of a timeline by id if id is not found", async () => {
+        const response = await request(app)
+          .get(`${route}/64a246513868f467cc60555e/occurrences`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Timeline not found");
+      });
+
+      it("Should not find all occurrences of a timeline by id if token is not provided", async () => {
+        const response = await request(app).get(
+          `${route}/${idTimeline}/occurrences`
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not find all occurrences of a timeline by id if token is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/${idTimeline}/occurrences`)
           .set("Authorization", `Bearer ${token}1`);
 
         expect(response.status).toBe(401);
