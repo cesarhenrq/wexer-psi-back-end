@@ -160,4 +160,30 @@ export default class OccurrenceService {
       };
     }
   }
+
+  async delete(id: string) {
+    try {
+      const occurrence = await this.occurrenceRepository.delete(id);
+
+      if (!occurrence) {
+        return {
+          status: 404,
+          message: "Occurrence not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Occurrence deleted successfully",
+        data: occurrence,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
