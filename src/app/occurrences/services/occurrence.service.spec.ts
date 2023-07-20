@@ -9,6 +9,7 @@ describe("Occurrence service", () => {
     create: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
   } as any;
 
   const mockedTimelineRepository = {
@@ -636,6 +637,62 @@ describe("Occurrence service", () => {
         payload
       );
       expect(mockedOccurrenceRepository.update).toBeCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should delete an occurrence", async () => {
+      mockedOccurrenceRepository.delete.mockResolvedValueOnce({});
+
+      const expected = {
+        status: 200,
+        message: "Occurrence deleted successfully",
+        data: {},
+      };
+
+      const result = await sut.delete("occurrence-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
+        "occurrence-id"
+      );
+      expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+    });
+
+    it("Should return 404 if occurrence does not exist", async () => {
+      mockedOccurrenceRepository.delete.mockResolvedValueOnce(null);
+
+      const expected = {
+        status: 404,
+        message: "Occurrence not found",
+        data: null,
+      };
+
+      const result = await sut.delete("occurrence-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
+        "occurrence-id"
+      );
+      expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+    });
+
+    it("Should return 500 if an error occurs in occurrenceRepository.delete", async () => {
+      mockedOccurrenceRepository.delete.mockRejectedValueOnce(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("occurrence-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
+        "occurrence-id"
+      );
+      expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
     });
   });
 });
