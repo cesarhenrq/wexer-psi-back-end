@@ -28,4 +28,9 @@ occurrenceRouter.patch(
   occurrenceController.update.bind(occurrenceController)
 );
 
+occurrenceRouter.delete(
+  "/:id/timelines/:timelineId",
+  occurrenceController.delete.bind(occurrenceController)
+);
+
 export default occurrenceRouter;

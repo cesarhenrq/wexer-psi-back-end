@@ -1,4 +1,3 @@
-import exp from "constants";
 import TimelineRepository from "./timeline.repository";
 
 describe("TimelineRepository", () => {
@@ -172,6 +171,75 @@ describe("TimelineRepository", () => {
         {
           $push: { occurrences: "any_occurrence_id" },
         },
+        { new: true }
+      );
+    });
+  });
+
+  describe("DissociateOccurrence", () => {
+    it("Should dissociate an occurrence from a timeline", async () => {
+      const mockedTimeline = {
+        _id: "any_id",
+        name: "any_name",
+        occurrences: ["any_occurrence_id"],
+        createdAt: "any_date",
+        updatedAt: "any_date",
+      };
+
+      const mockedUpdatedTimeline = {
+        ...mockedTimeline,
+        occurrences: [],
+      };
+
+      mockedTimelineEntity.findByIdAndUpdate.mockResolvedValueOnce(
+        mockedUpdatedTimeline
+      );
+
+      const result = await sut.desassociateOccurrence(
+        "any_id",
+        "any_occurrence_id"
+      );
+
+      expect(result).toEqual(mockedUpdatedTimeline);
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { occurrences: "any_occurrence_id" } },
+        { new: true }
+      );
+    });
+
+    it("Should return null if timeline is not found", async () => {
+      mockedTimelineEntity.findByIdAndUpdate.mockResolvedValueOnce(null);
+
+      const result = await sut.desassociateOccurrence(
+        "any_id",
+        "any_occurrence_id"
+      );
+
+      expect(result).toEqual(null);
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { occurrences: "any_occurrence_id" } },
+        { new: true }
+      );
+    });
+
+    it("Should throw an error if occurrence is not associated to timeline", async () => {
+      mockedTimelineEntity.findByIdAndUpdate.mockRejectedValueOnce(
+        new Error("any_error")
+      );
+
+      const result = await sut
+        .desassociateOccurrence("any_id", "any_occurrence_id")
+        .catch((error) => error);
+
+      expect(result).toEqual(new Error("any_error"));
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { occurrences: "any_occurrence_id" } },
         { new: true }
       );
     });

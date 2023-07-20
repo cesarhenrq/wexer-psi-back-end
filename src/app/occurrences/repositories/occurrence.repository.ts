@@ -17,4 +17,8 @@ export default class OccurrenceRepository {
   async update(id: string, occurrence: UpdateOccurrenceDto) {
     return this.model.findByIdAndUpdate(id, occurrence, { new: true });
   }
+
+  async delete(id: string) {
+    return this.model.findByIdAndDelete(id);
+  }
 }

@@ -160,4 +160,38 @@ export default class OccurrenceService {
       };
     }
   }
+
+  async delete(id: string, timelineId: string) {
+    try {
+      const occurrence = await this.occurrenceRepository.delete(id);
+
+      if (!occurrence) {
+        return {
+          status: 404,
+          message: "Occurrence not found",
+          data: null,
+        };
+      }
+
+      if (occurrence.files?.length) {
+        const filesToDelete = occurrence.files.map((file) => file._id);
+
+        await this.fileRepository.deleteMany(filesToDelete as any[]);
+      }
+
+      await this.timelineRepository.desassociateOccurrence(timelineId, id);
+
+      return {
+        status: 200,
+        message: "Occurrence deleted successfully",
+        data: occurrence,
+      };
+    } catch (err) {
+      return {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+    }
+  }
 }
