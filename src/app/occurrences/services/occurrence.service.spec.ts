@@ -15,6 +15,7 @@ describe("Occurrence service", () => {
   const mockedTimelineRepository = {
     findById: jest.fn(),
     associateOccurrence: jest.fn(),
+    desassociateOccurrence: jest.fn(),
   } as any;
 
   const mockedFileRepository = {
@@ -650,13 +651,19 @@ describe("Occurrence service", () => {
         data: {},
       };
 
-      const result = await sut.delete("occurrence-id");
+      const result = await sut.delete("occurrence-id", "timeline-id");
 
       expect(result).toEqual(expected);
       expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
         "occurrence-id"
       );
       expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+      expect(
+        mockedTimelineRepository.desassociateOccurrence
+      ).toHaveBeenCalledWith("timeline-id", "occurrence-id");
+      expect(mockedTimelineRepository.desassociateOccurrence).toBeCalledTimes(
+        1
+      );
     });
 
     it("Should delete an occurrence and associated files", async () => {
@@ -689,7 +696,7 @@ describe("Occurrence service", () => {
         data: occurrence,
       };
 
-      const result = await sut.delete("occurrence-id");
+      const result = await sut.delete("occurrence-id", "timeline-id");
 
       expect(result).toEqual(expected);
       expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
@@ -701,6 +708,12 @@ describe("Occurrence service", () => {
         "file-id",
       ]);
       expect(mockedFileRepository.deleteMany).toBeCalledTimes(1);
+      expect(
+        mockedTimelineRepository.desassociateOccurrence
+      ).toHaveBeenCalledWith("timeline-id", "occurrence-id");
+      expect(mockedTimelineRepository.desassociateOccurrence).toBeCalledTimes(
+        1
+      );
     });
 
     it("Should return 404 if occurrence does not exist", async () => {
@@ -712,7 +725,7 @@ describe("Occurrence service", () => {
         data: null,
       };
 
-      const result = await sut.delete("occurrence-id");
+      const result = await sut.delete("occurrence-id", "timeline-id");
 
       expect(result).toEqual(expected);
       expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
@@ -730,13 +743,82 @@ describe("Occurrence service", () => {
         data: null,
       };
 
-      const result = await sut.delete("occurrence-id");
+      const result = await sut.delete("occurrence-id", "timeline-id");
 
       expect(result).toEqual(expected);
       expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
         "occurrence-id"
       );
       expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+    });
+
+    it("Should return 500 if an error occurs in fileRepository.deleteMany", async () => {
+      const occurrence = {
+        id: "occurrence-id",
+        name: "Occurrence name",
+        content: "Occurrence content",
+        kind: "Occurrence kind",
+        files: [
+          { _id: "file-id", filename: "file1.jpg", mimetype: "image/jpeg" },
+
+          {
+            _id: "file-id",
+            filename: "file.jpg2",
+            mimetype: "image/jpeg",
+          },
+        ],
+      };
+
+      mockedOccurrenceRepository.delete.mockResolvedValueOnce(occurrence);
+
+      mockedFileRepository.deleteMany.mockRejectedValueOnce(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("occurrence-id", "timeline-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
+        "occurrence-id"
+      );
+      expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+      expect(mockedFileRepository.deleteMany).toHaveBeenCalledWith([
+        "file-id",
+        "file-id",
+      ]);
+      expect(mockedFileRepository.deleteMany).toBeCalledTimes(1);
+    });
+
+    it("Should return 500 if an error occurs in timelineRepository.desassociateOccurrence", async () => {
+      mockedOccurrenceRepository.delete.mockResolvedValueOnce({});
+
+      mockedTimelineRepository.desassociateOccurrence.mockRejectedValueOnce(
+        new Error()
+      );
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("occurrence-id", "timeline-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith(
+        "occurrence-id"
+      );
+      expect(mockedOccurrenceRepository.delete).toBeCalledTimes(1);
+      expect(
+        mockedTimelineRepository.desassociateOccurrence
+      ).toHaveBeenCalledWith("timeline-id", "occurrence-id");
+      expect(mockedTimelineRepository.desassociateOccurrence).toBeCalledTimes(
+        1
+      );
     });
   });
 });
