@@ -537,7 +537,7 @@ describe("OccurrenceController", () => {
   describe("Delete", () => {
     it("Should return 200 when delete a occurrence", async () => {
       const mockedRequest = mockRequest({
-        params: { id: "any_id" },
+        params: { id: "any_id", timelineId: "any_timeline_id" },
       });
 
       const mockedResponse = mockResponse();
@@ -557,13 +557,16 @@ describe("OccurrenceController", () => {
         message: "any_message",
         data: "any_data",
       });
-      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toHaveBeenCalledWith(
+        "any_id",
+        "any_timeline_id"
+      );
       expect(mockedService.delete).toBeCalledTimes(1);
     });
 
     it("Should return 404 if a occurrence is not found", async () => {
       const mockedRequest = mockRequest({
-        params: { id: "any_id" },
+        params: { id: "any_id", timelineId: "any_timeline_id" },
       });
 
       const mockedResponse = mockResponse();
@@ -581,13 +584,16 @@ describe("OccurrenceController", () => {
         message: "Occurrence not found",
         data: null,
       });
-      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toHaveBeenCalledWith(
+        "any_id",
+        "any_timeline_id"
+      );
       expect(mockedService.delete).toBeCalledTimes(1);
     });
 
     it("Should return 500 if something goes wrong", async () => {
       const mockedRequest = mockRequest({
-        params: { id: "any_id" },
+        params: { id: "any_id", timelineId: "any_timeline_id" },
       });
 
       const mockedResponse = mockResponse();
@@ -605,7 +611,10 @@ describe("OccurrenceController", () => {
         message: "Internal server error",
         data: null,
       });
-      expect(mockedService.delete).toHaveBeenCalledWith("any_id");
+      expect(mockedService.delete).toHaveBeenCalledWith(
+        "any_id",
+        "any_timeline_id"
+      );
       expect(mockedService.delete).toBeCalledTimes(1);
     });
   });
