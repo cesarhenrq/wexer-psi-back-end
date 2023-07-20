@@ -29,7 +29,7 @@ occurrenceRouter.patch(
 );
 
 occurrenceRouter.delete(
-  "/:id",
+  "/:id/timelines/:timelineId",
   occurrenceController.delete.bind(occurrenceController)
 );
 
