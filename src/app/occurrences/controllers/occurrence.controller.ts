@@ -84,9 +84,9 @@ export default class OccurrenceController {
   }
 
   async delete(req: Request, res: Response) {
-    const { id } = req.params;
+    const { id, timelineId } = req.params;
 
-    const { status, message, data } = await this.service.delete(id);
+    const { status, message, data } = await this.service.delete(id, timelineId);
 
     return res.status(status).json({
       message,
