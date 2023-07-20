@@ -1207,7 +1207,7 @@ describe("App", () => {
   describe("Occurrence routes", () => {
     const route = "/occurrences";
 
-    describe("POST /occurrences/timelineId", () => {
+    describe("POST /occurrences/:timelineId", () => {
       it("Should be able to create an occurrence without files", async () => {
         const occurrence = {
           name: "test",
@@ -1589,10 +1589,10 @@ describe("App", () => {
       });
     });
 
-    describe("DELETE /occurrences/:id", () => {
+    describe("DELETE /occurrences/:id/timelines/:timelineId", () => {
       it("Should be able to delete an occurrence", async () => {
         const response = await request(app)
-          .delete(`${route}/${idOccurrence}`)
+          .delete(`${route}/${idOccurrence}/timelines/${idTimeline}`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(200);
@@ -1608,7 +1608,7 @@ describe("App", () => {
 
       it("Should be able to delete an occurrence with its files", async () => {
         const response = await request(app)
-          .delete(`${route}/${idOccurrenceWithFiles}`)
+          .delete(`${route}/${idOccurrenceWithFiles}/timelines/${idTimeline}`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(200);
@@ -1624,7 +1624,7 @@ describe("App", () => {
 
       it("Should not delete an occurrence if id is not valid", async () => {
         const response = await request(app)
-          .delete(`${route}/1`)
+          .delete(`${route}/1/timelines/${idTimeline}`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(500);
@@ -1634,7 +1634,7 @@ describe("App", () => {
 
       it("Should not delete an occurrence if id is not found", async () => {
         const response = await request(app)
-          .delete(`${route}/64a246513868f467cc60555e`)
+          .delete(`${route}/64a246513868f467cc60555e/timelines/${idTimeline}`)
           .set("Authorization", `Bearer ${token}`);
 
         expect(response.status).toBe(404);
@@ -1643,7 +1643,9 @@ describe("App", () => {
       });
 
       it("Should not delete an occurrence if token is not provided", async () => {
-        const response = await request(app).delete(`${route}/${idOccurrence}`);
+        const response = await request(app).delete(
+          `${route}/${idOccurrence}/timelines/${idTimeline}`
+        );
 
         expect(response.status).toBe(401);
         expect(response.body.data).toBeNull();
@@ -1652,7 +1654,7 @@ describe("App", () => {
 
       it("Should not delete an occurrence if token is not valid", async () => {
         const response = await request(app)
-          .delete(`${route}/${idOccurrence}`)
+          .delete(`${route}/${idOccurrence}/timelines/${idTimeline}`)
           .set("Authorization", `Bearer ${token}1`);
 
         expect(response.status).toBe(401);
