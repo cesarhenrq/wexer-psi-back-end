@@ -21,6 +21,8 @@ describe("App", () => {
 
   let idTimeline: string;
 
+  let idOccurrence: string;
+
   describe("Auth routes", () => {
     describe("POST /auth", () => {
       const route = "/auth";
@@ -1192,6 +1194,390 @@ describe("App", () => {
         const response = await request(app)
           .get(`${route}/${idTimeline}/occurrences`)
           .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+  });
+
+  describe("Occurrence routes", () => {
+    const route = "/occurrences";
+
+    describe("POST /occurrences/timelineId", () => {
+      it("Should be able to create an occurrence without files", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        idOccurrence = response.body.data._id;
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+      });
+
+      it("Should be able to create an occurrence with files", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .field("name", occurrence.name)
+          .field("content", occurrence.content)
+          .field("kind", occurrence.kind)
+          .attach(
+            "files",
+            path.resolve(
+              __dirname,
+              "./../uploads/1689717097651-1688423668943-flor-rosa-sobre-um-fundo-branco.jpg"
+            )
+          )
+          .attach(
+            "files",
+            path.resolve(
+              __dirname,
+              "./../uploads/1689717097651-1688423668943-flor-rosa-sobre-um-fundo-branco.jpg"
+            )
+          );
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+        expect(response.body.data.files.length).toBe(2);
+      });
+
+      it("Should not create an occurrence if name is not provided", async () => {
+        const occurrence = {
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(400);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toEqual(["name is a required field"]);
+      });
+
+      it("Should not create an occurrence if content is not provided", async () => {
+        const occurrence = {
+          name: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(400);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toEqual(["content is a required field"]);
+      });
+
+      it("Should not create an occurrence if kind is not provided", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(400);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toEqual(["kind is a required field"]);
+      });
+
+      it("Should not create an occurrence if kind is not valid", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "test",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(400);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toEqual([
+          "kind must be one of the following values: session, relevant-fact",
+        ]);
+      });
+
+      it("Should not create an occurrence if timeline id is not valid", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not create an occurrence if timeline id is not found", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/64a246513868f467cc60555e`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}`)
+          .send(occurrence);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Timeline not found");
+      });
+
+      it("Should not create an occurrence if token is not provided", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not create an occurrence if token is not valid", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .post(`${route}/${idTimeline}`)
+          .type("json")
+          .set("Authorization", `Bearer ${token}1`)
+          .send(occurrence);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("GET /occurrences/:id", () => {
+      it("Should be able to get an occurrence by id", async () => {
+        const response = await request(app)
+          .get(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+      });
+
+      it("Should not get an occurrence if id is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not get an occurrence if id is not found", async () => {
+        const response = await request(app)
+          .get(`${route}/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Occurrence not found");
+      });
+
+      it("Should not get an occurrence if token is not provided", async () => {
+        const response = await request(app).get(`${route}/${idOccurrence}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not get an occurrence if token is not valid", async () => {
+        const response = await request(app)
+          .get(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+
+    describe("PATCH /occurrences/:id", () => {
+      it("Should be able to update an occurrence", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+        expect(response.body.message).toBe("Occurrence updated successfully");
+      });
+
+      it("Should be able to update occurrence's files", async () => {
+        const response = await request(app)
+          .patch(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}`)
+          .attach(
+            "files",
+            path.resolve(
+              __dirname,
+              "./../uploads/1689717097651-1688423668943-flor-rosa-sobre-um-fundo-branco.jpg"
+            )
+          )
+          .attach(
+            "files",
+            path.resolve(
+              __dirname,
+              "./../uploads/1689717097651-1688423668943-flor-rosa-sobre-um-fundo-branco.jpg"
+            )
+          );
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("content");
+        expect(response.body.data).toHaveProperty("kind");
+        expect(response.body.data).toHaveProperty("files");
+        expect(response.body.message).toBe("Occurrence updated successfully");
+      });
+
+      it("Should not update an occurrence if id is not valid", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not update an occurrence if id is not found", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .get(`${route}/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Occurrence not found");
+      });
+
+      it("Should not update an occurrence if token is not provided", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idOccurrence}`)
+          .type("json")
+          .send(occurrence);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not update an occurrence if token is not valid", async () => {
+        const occurrence = {
+          name: "test",
+          content: "test",
+          kind: "session",
+        };
+
+        const response = await request(app)
+          .patch(`${route}/${idOccurrence}`)
+          .set("Authorization", `Bearer ${token}1`)
+          .type("json")
+          .send(occurrence);
 
         expect(response.status).toBe(401);
         expect(response.body.data).toBeNull();
