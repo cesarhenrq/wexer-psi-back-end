@@ -9,6 +9,7 @@ describe("OccurrenceRepository", () => {
     create: jest.fn(),
     findById: jest.fn(),
     findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
   };
 
   const sut = new OccurrenceRepository(mockedModel);
@@ -170,6 +171,63 @@ describe("OccurrenceRepository", () => {
         { new: true }
       );
       expect(mockedModel.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should return a occurrence if it is deleted", async () => {
+      const mockedOccurrence: any = {
+        name: "any_name",
+        content: "any_content",
+        kind: "any_kind",
+      };
+
+      const mockedDeletedOccurrence = {
+        ...mockedOccurrence,
+        files: [],
+        createdAt: "any_date",
+        updatedAt: "any_date",
+      };
+
+      mockedModel.findByIdAndDelete.mockResolvedValueOnce(
+        mockedDeletedOccurrence
+      );
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toEqual(mockedDeletedOccurrence);
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledWith("any_id");
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return null if occurrence is not found", async () => {
+      mockedModel.findByIdAndDelete.mockResolvedValueOnce(null);
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toBeNull();
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledWith("any_id");
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should throw an error if id is not provided", async () => {
+      mockedModel.findByIdAndDelete.mockRejectedValueOnce(new Error());
+
+      const result = await sut.delete("any_id").catch((error) => error);
+
+      expect(result).toEqual(new Error());
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledWith("any_id");
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should throw an error if id is not valid", async () => {
+      mockedModel.findByIdAndDelete.mockRejectedValueOnce(new Error());
+
+      const result = await sut.delete("any_id").catch((error) => error);
+
+      expect(result).toEqual(new Error());
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledWith("any_id");
+      expect(mockedModel.findByIdAndDelete).toHaveBeenCalledTimes(1);
     });
   });
 });
