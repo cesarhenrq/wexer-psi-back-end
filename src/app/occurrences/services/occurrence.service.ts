@@ -161,7 +161,7 @@ export default class OccurrenceService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string, timelineId: string) {
     try {
       const occurrence = await this.occurrenceRepository.delete(id);
 
@@ -173,11 +173,13 @@ export default class OccurrenceService {
         };
       }
 
-      if (occurrence.files.length) {
+      if (occurrence.files?.length) {
         const filesToDelete = occurrence.files.map((file) => file._id);
 
         await this.fileRepository.deleteMany(filesToDelete as any[]);
       }
+
+      await this.timelineRepository.desassociateOccurrence(timelineId, id);
 
       return {
         status: 200,
