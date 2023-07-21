@@ -27,4 +27,12 @@ export default class PatientRepository {
       { new: true }
     );
   }
+
+  async disassociateTimeline(id: string, timelineId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      { $pull: { timelines: timelineId } },
+      { new: true }
+    );
+  }
 }

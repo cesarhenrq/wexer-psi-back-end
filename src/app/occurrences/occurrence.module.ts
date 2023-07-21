@@ -14,7 +14,7 @@ export default class OccurrenceModule {
     const repository = new OccurrenceRepository(Occurrence);
     const service = new OccurrenceService(
       repository,
-      TimelineModule.build().repository,
+      TimelineModule.build(repository).repository,
       FileModule.build().repository
     );
 

@@ -1663,4 +1663,84 @@ describe("App", () => {
       });
     });
   });
+
+  describe("Timeline route", () => {
+    const route = "/timelines";
+
+    describe("DELETE /timelines/:id/patients/:patientsId", () => {
+      it("Should delete a timeline by id", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idTimeline}/patients/${idPatient}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("occurrences");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.message).toBe("Timeline deleted");
+      });
+
+      it("Should not delete a timeline by id if id is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/1/patients/${idPatient}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not delete a timeline by id if id is not found", async () => {
+        const response = await request(app)
+          .delete(`${route}/64a246513868f467cc60555e/patients/${idPatient}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Timeline not found");
+      });
+
+      it("Should not delete a timeline by id if token is not provided", async () => {
+        const response = await request(app).delete(
+          `${route}/${idTimeline}/patients/${idPatient}`
+        );
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not delete a timeline by id if token is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idTimeline}/patients/${idPatient}`)
+          .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+
+      it("Should not delete a timeline by id if patientId is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idTimeline}/patients/1`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not delete a timeline by id if patientId is not found", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idTimeline}/patients/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Patient not found");
+      });
+    });
+  });
 });

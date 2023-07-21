@@ -35,4 +35,8 @@ export default class TimelineRepository {
       { new: true }
     );
   }
+
+  async delete(id: string) {
+    return this.model.findByIdAndDelete(id);
+  }
 }

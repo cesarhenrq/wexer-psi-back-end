@@ -18,6 +18,7 @@ describe("TimelineController", () => {
     findById: jest.fn(),
     update: jest.fn(),
     findOccurrences: jest.fn(),
+    delete: jest.fn(),
   };
 
   const sut = new TimelineController(mockedService);
@@ -444,6 +445,104 @@ describe("TimelineController", () => {
       });
       expect(mockedService.findOccurrences).toHaveBeenCalledWith("1", 1, 10);
       expect(mockedService.findOccurrences).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should return 200 when delete a timeline", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "1", patientId: "1" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 200,
+        message: "Timeline deleted",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(200);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Timeline deleted",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("1", "1");
+      expect(mockedService.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return 404 if timeline not found", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "1", patientId: "1" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 404,
+        message: "Timeline not found",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(404);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Timeline not found",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("1", "1");
+      expect(mockedService.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return 404 if patient not found", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "1", patientId: "1" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 404,
+        message: "Patient not found",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(404);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Patient not found",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("1", "1");
+      expect(mockedService.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return 500 if something goes wrong", async () => {
+      const mockedRequest = mockRequest({
+        params: { id: "1", patientId: "1" },
+      });
+
+      const mockedResponse = mockResponse();
+
+      mockedService.delete.mockResolvedValue({
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      });
+
+      await sut.delete(mockedRequest, mockedResponse);
+
+      expect(mockedResponse.status).toHaveBeenCalledWith(500);
+      expect(mockedResponse.json).toHaveBeenCalledWith({
+        message: "Internal server error",
+        data: null,
+      });
+      expect(mockedService.delete).toHaveBeenCalledWith("1", "1");
+      expect(mockedService.delete).toHaveBeenCalledTimes(1);
     });
   });
 });

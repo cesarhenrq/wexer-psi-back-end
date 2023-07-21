@@ -273,4 +273,76 @@ describe("PatientRepository", () => {
       expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("DisassociateTimeline", () => {
+    it("Should disassociate a timeline from a patient", async () => {
+      const mockedPatient: any = {
+        _id: "any_id",
+        name: "any_name",
+        contact: "any_contact",
+        birthdate: "any_birthdate",
+        demands: "any_demands",
+        personalAnnotations: "any_personalAnnotations",
+        user: "any_user",
+        timelines: ["any_timeline_id"],
+      };
+
+      const mockedUpdatedPatient: any = {
+        ...mockedPatient,
+        timelines: [],
+        createdAt: "any_date",
+        updatedAt: "any_date",
+      };
+
+      mockedPatientEntity.findByIdAndUpdate.mockResolvedValueOnce(
+        mockedUpdatedPatient
+      );
+
+      const result = await sut.disassociateTimeline(
+        "any_id",
+        "any_timeline_id"
+      );
+
+      expect(result).toEqual(mockedUpdatedPatient);
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { timelines: "any_timeline_id" } },
+        { new: true }
+      );
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return null if patient is not found", async () => {
+      mockedPatientEntity.findByIdAndUpdate.mockResolvedValueOnce(null);
+
+      const result = await sut.disassociateTimeline(
+        "any_id",
+        "any_timeline_id"
+      );
+
+      expect(result).toBeNull();
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { timelines: "any_timeline_id" } },
+        { new: true }
+      );
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should throw an error if timeline is not associated to patient", async () => {
+      mockedPatientEntity.findByIdAndUpdate.mockRejectedValueOnce(new Error());
+
+      const result = await sut
+        .disassociateTimeline("any_id", "any_timeline_id")
+        .catch((error) => error);
+
+      expect(result).toEqual(new Error());
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { timelines: "any_timeline_id" } },
+        { new: true }
+      );
+      expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+  });
 });
