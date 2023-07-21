@@ -5,8 +5,12 @@ const timelineRouter = Router();
 import AuthMiddleware from "../common/middlewares/auth.middleware";
 
 import TimelineModule from "../app/timelines/timeline.module";
+import OccurrenceModule from "../app/occurrences/occurrence.module";
 
-const timelineController = TimelineModule.build().controller;
+const occurrenceRepository = OccurrenceModule.build().repository;
+
+const timelineController =
+  TimelineModule.build(occurrenceRepository).controller;
 
 timelineRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
@@ -25,6 +29,11 @@ timelineRouter.patch(
 timelineRouter.get(
   "/:id/occurrences",
   timelineController.findOccurrences.bind(timelineController)
+);
+
+timelineRouter.delete(
+  "/:id/patients/:patientId",
+  timelineController.delete.bind(timelineController)
 );
 
 export default timelineRouter;
