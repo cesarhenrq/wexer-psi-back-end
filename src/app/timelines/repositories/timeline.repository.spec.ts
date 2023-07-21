@@ -9,6 +9,7 @@ describe("TimelineRepository", () => {
     create: jest.fn(),
     findById: jest.fn(),
     findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
   };
 
   const sut = new TimelineRepository(mockedTimelineEntity);
@@ -241,6 +242,56 @@ describe("TimelineRepository", () => {
         "any_id",
         { $pull: { occurrences: "any_occurrence_id" } },
         { new: true }
+      );
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should delete a timeline", async () => {
+      const mockedTimeline = {
+        _id: "any_id",
+        name: "any_name",
+        occurrences: [],
+        createdAt: "any_date",
+        updatedAt: "any_date",
+      };
+
+      mockedTimelineEntity.findByIdAndDelete.mockResolvedValueOnce(
+        mockedTimeline
+      );
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toEqual(mockedTimeline);
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
+      );
+    });
+
+    it("Should return null if timeline is not found", async () => {
+      mockedTimelineEntity.findByIdAndDelete.mockResolvedValueOnce(null);
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toEqual(null);
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
+      );
+    });
+
+    it("Should throw an error if timeline is not deleted", async () => {
+      mockedTimelineEntity.findByIdAndDelete.mockRejectedValueOnce(
+        new Error("any_error")
+      );
+
+      const result = await sut.delete("any_id").catch((error) => error);
+
+      expect(result).toEqual(new Error("any_error"));
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
       );
     });
   });
