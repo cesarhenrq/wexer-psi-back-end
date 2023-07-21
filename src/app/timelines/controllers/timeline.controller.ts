@@ -76,4 +76,15 @@ export default class TimelineController {
       data,
     });
   }
+
+  async delete(req: Request, res: Response) {
+    const { id, patientId } = req.params;
+
+    const { status, message, data } = await this.service.delete(id, patientId);
+
+    return res.status(status).json({
+      message,
+      data,
+    });
+  }
 }
