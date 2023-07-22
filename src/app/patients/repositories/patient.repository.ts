@@ -35,4 +35,8 @@ export default class PatientRepository {
       { new: true }
     );
   }
+
+  async delete(id: string) {
+    return this.model.findByIdAndDelete(id);
+  }
 }
