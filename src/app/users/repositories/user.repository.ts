@@ -35,4 +35,12 @@ export default class UserRepository {
       { new: true }
     );
   }
+
+  async disassociatePatient(id: string, patientId: string) {
+    return this.model.findByIdAndUpdate(
+      id,
+      { $pull: { patients: patientId } },
+      { new: true }
+    );
+  }
 }
