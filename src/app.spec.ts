@@ -1743,4 +1743,66 @@ describe("App", () => {
       });
     });
   });
+
+  describe("Patient route", () => {
+    const route = "/patients";
+
+    describe("DELETE /patients/:id", () => {
+      it("Should delete a patient by id", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idPatient}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty("_id");
+        expect(response.body.data).toHaveProperty("name");
+        expect(response.body.data).toHaveProperty("contact");
+        expect(response.body.data).toHaveProperty("birthdate");
+        expect(response.body.data).toHaveProperty("timelines");
+        expect(response.body.data).toHaveProperty("demands");
+        expect(response.body.data).toHaveProperty("personalAnnotations");
+        expect(response.body.data).toHaveProperty("createdAt");
+        expect(response.body.data).toHaveProperty("updatedAt");
+        expect(response.body.message).toBe("Patient deleted");
+      });
+
+      it("Should not delete a patient by id if id is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/1`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Internal server error");
+      });
+
+      it("Should not delete a patient by id if id is not found", async () => {
+        const response = await request(app)
+          .delete(`${route}/64a246513868f467cc60555e`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Patient not found");
+      });
+
+      it("Should not delete a patient by id if token is not provided", async () => {
+        const response = await request(app).delete(`${route}/${idPatient}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Token not found!");
+      });
+
+      it("Should not delete a patient by id if token is not valid", async () => {
+        const response = await request(app)
+          .delete(`${route}/${idPatient}`)
+          .set("Authorization", `Bearer ${token}1`);
+
+        expect(response.status).toBe(401);
+        expect(response.body.data).toBeNull();
+        expect(response.body.message).toBe("Invalid token!");
+      });
+    });
+  });
 });
