@@ -29,9 +29,28 @@ describe("User service", () => {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    deleteMany: jest.fn(),
   } as any;
 
-  const sut = new UserService(mockedUserRepository, mockedFileRepository);
+  const mockedPatientRepository = {
+    delete: jest.fn(),
+  } as any;
+
+  const mockedTimelineRepository: any = {
+    delete: jest.fn(),
+  };
+
+  const mockedOccurrenceRepository: any = {
+    delete: jest.fn(),
+  };
+
+  const sut = new UserService(
+    mockedUserRepository,
+    mockedPatientRepository,
+    mockedTimelineRepository,
+    mockedOccurrenceRepository,
+    mockedFileRepository
+  );
 
   describe("Create user", () => {
     const payload: CreateUserServiceDto = {
@@ -361,10 +380,32 @@ describe("User service", () => {
     const userDeleted = {
       name: "John Doe",
       image: "image-id",
+      patients: Array(10).fill("test"),
+    };
+
+    const patient = {
+      _id: "patient-id",
+      timelines: Array(10).fill("test"),
+    };
+
+    const timeline = {
+      _id: "timeline-id",
+      occurrences: Array(10).fill("test"),
+    };
+
+    const occurrence = {
+      _id: "occurrence-id",
+      files: Array(10).fill("test"),
     };
 
     it("Should delete an user", async () => {
       mockedUserRepository.delete.mockResolvedValue(userDeleted);
+
+      mockedPatientRepository.delete.mockResolvedValue(patient);
+
+      mockedTimelineRepository.delete.mockResolvedValue(timeline);
+
+      mockedOccurrenceRepository.delete.mockResolvedValue(occurrence);
 
       const expected = {
         status: 200,
@@ -379,10 +420,17 @@ describe("User service", () => {
       expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
       expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
       expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+      expect(mockedPatientRepository.delete).toHaveBeenCalledTimes(10);
+      expect(mockedPatientRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledTimes(100);
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledTimes(1000);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedFileRepository.deleteMany).toHaveBeenCalledTimes(1000);
     });
 
-    it("Should return an error if user doesn't exists", async () => {
-      await mockedUserRepository.delete.mockResolvedValue(null);
+    it("Should return null if user doesn't exists", async () => {
+      mockedUserRepository.delete.mockResolvedValue(null);
 
       const expected = {
         status: 404,
@@ -397,8 +445,8 @@ describe("User service", () => {
       expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
     });
 
-    it("Should return an error if something goes wrong in user repository during delete user", async () => {
-      await mockedUserRepository.delete.mockRejectedValue(new Error());
+    it("Should throw an error if something goes wrong in userRepository.delete", async () => {
+      mockedUserRepository.delete.mockRejectedValue(new Error());
 
       const expected = {
         status: 500,
@@ -413,10 +461,10 @@ describe("User service", () => {
       expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
     });
 
-    it("Should return an error if something goes wrong in file repository during delete image", async () => {
+    it("Should throw an error if something goes wrong in fileRepository.delete", async () => {
       mockedUserRepository.delete.mockResolvedValue(userDeleted);
 
-      await mockedFileRepository.delete.mockRejectedValue(new Error());
+      mockedFileRepository.delete.mockRejectedValue(new Error());
 
       const expected = {
         status: 500,
@@ -431,6 +479,117 @@ describe("User service", () => {
       expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
       expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
       expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+    });
+
+    it("Should throw an error if something goes wrong in patientRepository.delete", async () => {
+      mockedUserRepository.delete.mockResolvedValue(userDeleted);
+
+      mockedPatientRepository.delete.mockRejectedValue(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("user-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
+      expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+      expect(mockedPatientRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedPatientRepository.delete).toHaveBeenCalledWith("test");
+    });
+
+    it("Should throw an error if something goes wrong in timelineRepository.delete", async () => {
+      mockedUserRepository.delete.mockResolvedValue(userDeleted);
+
+      mockedPatientRepository.delete.mockResolvedValue(patient);
+
+      mockedTimelineRepository.delete.mockRejectedValue(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("user-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
+      expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+      expect(mockedPatientRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedPatientRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledWith("test");
+    });
+
+    it("Should throw an error if something goes wrong in occurrenceRepository.delete", async () => {
+      mockedUserRepository.delete.mockResolvedValue(userDeleted);
+
+      mockedPatientRepository.delete.mockResolvedValue(patient);
+
+      mockedTimelineRepository.delete.mockResolvedValue(timeline);
+
+      mockedOccurrenceRepository.delete.mockRejectedValue(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("user-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
+      expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+      expect(mockedPatientRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedPatientRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith("test");
+    });
+
+    it("Should throw an error if something goes wrong in fileRepository.deleteMany", async () => {
+      mockedUserRepository.delete.mockResolvedValue(userDeleted);
+
+      mockedPatientRepository.delete.mockResolvedValue(patient);
+
+      mockedTimelineRepository.delete.mockResolvedValue(timeline);
+
+      mockedOccurrenceRepository.delete.mockResolvedValue(occurrence);
+
+      mockedFileRepository.deleteMany.mockRejectedValue(new Error());
+
+      const expected = {
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      };
+
+      const result = await sut.delete("user-id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedUserRepository.delete).toHaveBeenCalledWith("user-id");
+      expect(mockedFileRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedFileRepository.delete).toHaveBeenCalledWith("image-id");
+      expect(mockedPatientRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedPatientRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedTimelineRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockedOccurrenceRepository.delete).toHaveBeenCalledWith("test");
+      expect(mockedFileRepository.deleteMany).toHaveBeenCalledTimes(1);
     });
   });
 
