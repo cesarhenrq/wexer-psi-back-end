@@ -4,13 +4,9 @@ const timelineRouter = Router();
 
 import AuthMiddleware from "../common/middlewares/auth.middleware";
 
-import TimelineModule from "../app/timelines/timeline.module";
-import OccurrenceModule from "../app/occurrences/occurrence.module";
+import TimelineModuleFactory from "../app/timelines/factories/module.factory";
 
-const occurrenceRepository = OccurrenceModule.build().repository;
-
-const timelineController =
-  TimelineModule.build(occurrenceRepository).controller;
+const timelineController = TimelineModuleFactory.build().controller;
 
 timelineRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
