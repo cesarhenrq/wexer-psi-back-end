@@ -1,5 +1,8 @@
 import UserRepository from "../repositories/user.repository";
 import FileRepository from "../../files/repositories/file.repository";
+import PatientRepository from "../../patients/repositories/patient.repository";
+import TimelineRepository from "../../timelines/repositories/timeline.repository";
+import OccurrenceRepository from "../../occurrences/repositories/occurrence.repository";
 
 import { hash } from "bcryptjs";
 
@@ -11,6 +14,9 @@ import paginate from "../../../utils/paginate";
 export default class UserService {
   constructor(
     private userRepository: UserRepository,
+    private patientRepository: PatientRepository,
+    private timelineRepository: TimelineRepository,
+    private occurrenceRepository: OccurrenceRepository,
     private fileRepository: FileRepository
   ) {}
 
@@ -117,6 +123,51 @@ export default class UserService {
       }
 
       await this.fileRepository.delete(res.image as unknown as string);
+
+      const hasPatients = res.patients.length > 0;
+
+      if (hasPatients) {
+        for (const patient of res.patients) {
+          const deletedPatient = await this.patientRepository.delete(
+            patient as unknown as string
+          );
+
+          if (deletedPatient) {
+            const hasTimelines = deletedPatient.timelines.length > 0;
+
+            if (hasTimelines) {
+              for (const timeline of deletedPatient.timelines) {
+                const deletedTimeline = await this.timelineRepository.delete(
+                  timeline as unknown as string
+                );
+
+                if (deletedTimeline) {
+                  const hasOccurrences = deletedTimeline.occurrences.length > 0;
+
+                  if (hasOccurrences) {
+                    for (const occurrence of deletedTimeline.occurrences) {
+                      const deletedOccurrence =
+                        await this.occurrenceRepository.delete(
+                          occurrence as unknown as string
+                        );
+
+                      if (deletedOccurrence) {
+                        const hasFiles = deletedOccurrence.files.length > 0;
+
+                        if (hasFiles) {
+                          await this.fileRepository.deleteMany(
+                            deletedOccurrence.files as any[]
+                          );
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
 
       return {
         status: 200,

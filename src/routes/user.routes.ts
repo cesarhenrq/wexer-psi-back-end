@@ -5,9 +5,9 @@ const userRouter = Router();
 import upload from "../configs/storage-config";
 import AuthMiddleware from "../common/middlewares/auth.middleware";
 
-import UserModule from "../app/users/user.module";
+import UserModuleFactory from "../app/users/factories/module.factory";
 
-const userController = UserModule.build().controller;
+const userController = UserModuleFactory.build().controller;
 
 userRouter.post(
   "/",
