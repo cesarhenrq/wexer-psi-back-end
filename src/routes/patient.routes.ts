@@ -4,9 +4,9 @@ const patientRouter = Router();
 
 import AuthMiddleware from "../common/middlewares/auth.middleware";
 
-import PatientModule from "../app/patients/patient.module";
+import PatientModuleFactory from "../app/patients/factories/module.factory";
 
-const patientController = PatientModule.build().controller;
+const patientController = PatientModuleFactory.build().controller;
 
 patientRouter.use(AuthMiddleware.execute.bind(AuthMiddleware));
 
@@ -20,5 +20,7 @@ patientRouter.get(
   "/:id/timelines",
   patientController.findAllTimelines.bind(patientController)
 );
+
+patientRouter.delete("/:id", patientController.delete.bind(patientController));
 
 export default patientRouter;

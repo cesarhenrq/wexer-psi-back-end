@@ -1,3 +1,4 @@
+import { mock } from "node:test";
 import PatientRepository from "./patient.repository";
 
 describe("PatientRepository", () => {
@@ -9,6 +10,7 @@ describe("PatientRepository", () => {
     create: jest.fn(),
     findById: jest.fn(),
     findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
   };
 
   const sut = new PatientRepository(mockedPatientEntity);
@@ -343,6 +345,57 @@ describe("PatientRepository", () => {
         { new: true }
       );
       expect(mockedPatientEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should delete a patient", async () => {
+      const mockedPatient: any = {
+        _id: "any_id",
+        name: "any_name",
+        contact: "any_contact",
+        birthdate: "any_birthdate",
+        demands: "any_demands",
+        personalAnnotations: "any_personalAnnotations",
+        user: "any_user",
+        timelines: ["any_timeline_id"],
+      };
+
+      mockedPatientEntity.findByIdAndDelete.mockResolvedValueOnce(
+        mockedPatient
+      );
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toEqual(mockedPatient);
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
+      );
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return null if patient is not found", async () => {
+      mockedPatientEntity.findByIdAndDelete.mockResolvedValueOnce(null);
+
+      const result = await sut.delete("any_id");
+
+      expect(result).toBeNull();
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
+      );
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should throw an error if patient has not been deleted", async () => {
+      mockedPatientEntity.findByIdAndDelete.mockRejectedValueOnce(new Error());
+
+      const result = await sut.delete("any_id").catch((error) => error);
+
+      expect(result).toEqual(new Error());
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledWith(
+        "any_id"
+      );
+      expect(mockedPatientEntity.findByIdAndDelete).toHaveBeenCalledTimes(1);
     });
   });
 });

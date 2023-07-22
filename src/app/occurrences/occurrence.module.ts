@@ -6,16 +6,19 @@ import OccurrenceService from "./services/occurrence.service";
 
 import OccurrenceController from "./controllers/occurrence.controller";
 
-import FileModule from "../files/file.module";
-import TimelineModule from "../timelines/timeline.module";
+import TimelineRepository from "../timelines/repositories/timeline.repository";
+import FileRepository from "../files/repositories/file.repository";
 
 export default class OccurrenceModule {
-  static build() {
+  static build(
+    timelineRepository: TimelineRepository,
+    fileRepository: FileRepository
+  ) {
     const repository = new OccurrenceRepository(Occurrence);
     const service = new OccurrenceService(
       repository,
-      TimelineModule.build(repository).repository,
-      FileModule.build().repository
+      timelineRepository,
+      fileRepository
     );
 
     const controller = new OccurrenceController(service);

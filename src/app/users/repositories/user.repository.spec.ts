@@ -365,4 +365,72 @@ describe("UserRepository", () => {
       expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("DisassociatePatient", () => {
+    it("Should disassociate a patient", async () => {
+      const mockedUser: any = {
+        _id: "any_id",
+        name: "any_name",
+        email: "any_email",
+        password: "any_password",
+        image: "any_image",
+        patients: Array(2).fill("any_patient_id"),
+      };
+
+      const mockedUserUpdated: any = {
+        ...mockedUser,
+        patients: Array(1).fill("any_patient_id"),
+        createdAt: "any_date",
+        updatedAt: "any_date",
+      };
+
+      mockedUserEntity.findByIdAndUpdate.mockResolvedValue(mockedUserUpdated);
+
+      const expected = { ...mockedUserUpdated };
+
+      const result = await sut.disassociatePatient("any_id", "any_patient_id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { patients: "any_patient_id" } },
+        { new: true }
+      );
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return null if user is not found", async () => {
+      mockedUserEntity.findByIdAndUpdate.mockResolvedValue(null);
+
+      const expected = null;
+
+      const result = await sut.disassociatePatient("any_id", "any_patient_id");
+
+      expect(result).toEqual(expected);
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { patients: "any_patient_id" } },
+        { new: true }
+      );
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should throw an error if patient has not been disassociated", async () => {
+      mockedUserEntity.findByIdAndUpdate.mockRejectedValue(
+        new Error("any_error")
+      );
+
+      const result = await sut
+        .disassociatePatient("any_id", "any_patient_id")
+        .catch((error) => error);
+
+      expect(result).toEqual(new Error("any_error"));
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledWith(
+        "any_id",
+        { $pull: { patients: "any_patient_id" } },
+        { new: true }
+      );
+      expect(mockedUserEntity.findByIdAndUpdate).toHaveBeenCalledTimes(1);
+    });
+  });
 });
