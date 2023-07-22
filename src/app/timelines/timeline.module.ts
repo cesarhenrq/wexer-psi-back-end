@@ -6,19 +6,22 @@ import TimelineService from "./services/timeline.service";
 
 import TimelineController from "./controllers/timeline.controller";
 
-import PatientModule from "../patients/patient.module";
-import FileModule from "../files/file.module";
-
 import OccurrenceRepository from "../occurrences/repositories/occurrence.repository";
+import PatientRepository from "../patients/repositories/patient.repository";
+import FileRepository from "../files/repositories/file.repository";
 
 export default class TimelineModule {
-  static build(occurrenceRepository: OccurrenceRepository) {
+  static build(
+    occurrenceRepository: OccurrenceRepository,
+    patientRepository: PatientRepository,
+    fileRepository: FileRepository
+  ) {
     const repository = new TimelineRepository(Timeline);
     const service: any = new TimelineService(
       repository,
-      PatientModule.build().repository,
+      patientRepository,
       occurrenceRepository,
-      FileModule.build().repository
+      fileRepository
     );
     const controller = new TimelineController(service);
 
