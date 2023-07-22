@@ -19,6 +19,7 @@ describe("PatientController", () => {
     findById: jest.fn(),
     update: jest.fn(),
     findAllTimelines: jest.fn(),
+    delete: jest.fn(),
   };
 
   const sut = new PatientController(mockService);
@@ -639,6 +640,80 @@ describe("PatientController", () => {
       });
       expect(mockService.findAllTimelines).toHaveBeenCalledWith(id, "1", "10");
       expect(mockService.findAllTimelines).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Delete", () => {
+    it("Should return 200 if patient is deleted", async () => {
+      const id = "patient_id_any";
+
+      const req = mockRequest({ params: { id } });
+
+      const res = mockResponse();
+
+      mockService.delete = jest.fn().mockResolvedValue({
+        status: 200,
+        message: "Patient deleted",
+        data: "patient_data_any",
+      });
+
+      await sut.delete(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Patient deleted",
+        data: "patient_data_any",
+      });
+      expect(mockService.delete).toHaveBeenCalledWith(id);
+      expect(mockService.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return 404 if patient is not found", async () => {
+      const id = "patient_id_any";
+
+      const req = mockRequest({ params: { id } });
+
+      const res = mockResponse();
+
+      mockService.delete = jest.fn().mockResolvedValue({
+        status: 404,
+        message: "Patient not found",
+        data: null,
+      });
+
+      await sut.delete(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Patient not found",
+        data: null,
+      });
+      expect(mockService.delete).toHaveBeenCalledWith(id);
+      expect(mockService.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it("Should return 500 if something goes wrong", async () => {
+      const id = "patient_id_any";
+
+      const req = mockRequest({ params: { id } });
+
+      const res = mockResponse();
+
+      mockService.delete = jest.fn().mockResolvedValue({
+        status: 500,
+        message: "Internal server error",
+        data: null,
+      });
+
+      await sut.delete(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Internal server error",
+        data: null,
+      });
+      expect(mockService.delete).toHaveBeenCalledWith(id);
+      expect(mockService.delete).toHaveBeenCalledTimes(1);
     });
   });
 });
